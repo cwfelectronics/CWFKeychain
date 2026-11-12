@@ -5,194 +5,310 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CWFKeychain Web Flasher</title>
 <style>
-  * { box-sizing: border-box; }
+  :root {
+    --bg: #f3f4f6;
+    --card: #ffffff;
+    --text: #111827;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --accent: #111827;
+    --accent-hover: #000000;
+    --success: #15803d;
+    --error: #b91c1c;
+    --info: #2563eb;
+    --chip-bg: #f3f4f6;
+    --chip-text: #374151;
+    --console-bg: #111827;
+    --console-text: #e5e7eb;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  [data-theme="dark"] {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --border: #334155;
+    --accent: #f1f5f9;
+    --accent-hover: #ffffff;
+    --success: #4ade80;
+    --error: #f87171;
+    --info: #60a5fa;
+    --chip-bg: #334155;
+    --chip-text: #f1f5f9;
+    --console-bg: #000000;
+    --console-text: #e2e8f0;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    max-width: 720px;
-    margin: 40px auto;
-    padding: 0 16px;
-    color: #1f2937;
-    background: #f9fafb;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+    transition: background 0.2s, color 0.2s;
   }
-  h1 { font-size: 20px; margin: 0 0 8px; }
-  .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+  a { color: var(--info); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+  }
+  .header-inner { max-width: 1000px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+  .brand-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 2px rgba(34,197,94,0.2); }
+  .tagline { color: var(--muted); font-size: 13px; }
+  .header-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+  .btn-theme { background: var(--chip-bg); border: 1px solid var(--border); color: var(--chip-text); padding: 6px 10px; border-radius: 8px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  .btn-theme:hover { background: var(--border); }
+
+  main { max-width: 1000px; margin: 0 auto; padding: 24px; }
+
+  .status-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding: 12px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); }
+  .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 0 2px rgba(239,68,68,0.15); transition: all 0.2s; }
+  .status-dot.connected { background: var(--success); box-shadow: 0 0 0 2px rgba(34,197,94,0.25); }
+  .status-text { font-size: 14px; font-weight: 600; }
+  .status-chip { font-size: 12px; padding: 2px 10px; border-radius: 20px; background: var(--chip-bg); color: var(--chip-text); border: 1px solid var(--border); margin-left: auto; }
+  .status-chip.empty { color: var(--muted); }
+
+  .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 768px) { .grid { grid-template-columns: 1fr 1fr; } }
+
   card {
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
+    background: var(--card);
+    border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 16px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    transition: border-color 0.2s;
   }
-  card h2 { font-size: 15px; margin: 0 0 16px; text-transform: uppercase; letter-spacing: 0.05em; color: #374151; }
-  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .row > * { grid-column: span 2; }
-  @media (min-width: 600px) { .row > * { grid-column: auto; } }
-  label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #374151; }
-  input[type="file"] {
-    width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px;
-    background: #fff; font-size: 14px; color: #1f2937;
+  card h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: var(--text); letter-spacing: -0.01em; }
+  card h3 .k { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-left: auto; }
+
+  label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.02em; }
+  input[type="file"], input[type="text"] {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 14px;
   }
-  input[type="text"] {
-    width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px;
+  input[type="file"]::file-selector-button { display: none; }
+  input[type="text"]::placeholder { color: var(--muted); }
+  .file-name { margin-top: 10px; font-size: 13px; color: var(--text); word-break: break-all; }
+  .file-name.empty { color: var(--muted); font-style: italic; }
+
+  .field-group { display: grid; grid-template-columns: 1fr 120px; gap: 10px; }
+  .multi-file { display: flex; flex-direction: column; gap: 10px; }
+  .multi-row { display: grid; grid-template-columns: 1fr 120px; gap: 10px; align-items: end; }
+
+  button {
+    border: none; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px;
   }
-  .file-group { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; }
-  .file-group input[type="file"] { flex: 1; }
-  .file-group label { margin: 0; width: 88px; text-align: right; padding-right: 6px; font-size: 12px; }
-  .chip-pill {
-    display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 700;
-    margin-left: 8px; border: 1px solid #e5e7eb; background: #f3f4f6; color: #374151;
-  }
-  button.primary {
-    width: 100%; padding: 12px; border: none; border-radius: 8px; background: #111827;
-    color: #fff; font-size: 15px; font-weight: 600; cursor: pointer;
-  }
-  button.primary:disabled { opacity: 0.5; cursor: not-allowed; background: #9ca3af; }
-  button.secondary {
-    width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff;
-    color: #1f2937; font-size: 14px; cursor: pointer;
-  }
-  button.secondary:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-row { display: flex; gap: 8px; margin-top: 8px; }
-  .btn-row button { flex: 1; }
-  .hint { font-size: 12px; color: #6b7280; margin-top: 6px; }
-  .log {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 12px; background: #111827; color: #e5e7eb;
-    border-radius: 8px; padding: 12px; height: 260px; overflow: auto;
-    margin-top: 10px; border: 1px solid #1f2937;
-  }
-  .log .entry { margin: 2px 0; white-space: pre-wrap; word-break: break-all; }
-  .log .ok { color: #34d399; } .log .err { color: #f87171; } .log .info { color: #93c5fd; }
-  .log .warn { color: #fcd34d; }
-  .progress { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin: 8px 0; display: none; }
-  .progress .bar { height: 100%; background: #2563eb; width: 0%; }
-  .note { font-size: 13px; color: #6b7280; border-top: 1px solid #e5e7eb; padding-top: 12px; }
-  .note b { color: #111827; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+  .btn-secondary { background: var(--chip-bg); border: 1px solid var(--border); color: var(--chip-text); }
+  .btn-secondary:hover:not(:disabled) { background: var(--border); }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-success:hover:not(:disabled) { filter: brightness(0.95); }
+  .btn-danger { background: var(--error); color: #fff; }
+  .btn-danger:hover:not(:disabled) { filter: brightness(0.9); }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  .btn-full { width: 100%; justify-content: center; }
+
+  .progress-wrap { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin: 10px 0; display: none; }
+  .progress-bar { height: 100%; background: var(--info); width: 0%; transition: width 0.2s; }
+  .flash-status { font-size: 13px; color: var(--muted); margin-top: 6px; min-height: 20px; }
+
+  .console { height: 220px; background: var(--console-bg); color: var(--console-text); border: 1px solid var(--border); border-radius: 8px; padding: 12px; overflow: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; }
+  .console .line { margin: 2px 0; white-space: pre-wrap; word-break: break-all; }
+  .console .ok { color: var(--success); }
+  .console .err { color: var(--error); }
+  .console .info { color: var(--info); }
+  .console .warn { color: #fbbf24; }
+  .console .ts { color: var(--muted); margin-right: 8px; user-select: none; }
+
+  .note { font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); padding-top: 14px; margin-top: 8px; }
+  .note b { color: var(--text); }
+
   .hidden { display: none !important; }
 </style>
 </head>
 <body>
 
-<h1>CWFKeychain Web Flasher <span class="chip-pill">ESP32-C3</span></h1>
-<p class="subtitle">Flash the full firmware release (bootloader + partitions + app) to your CWFKeychain keychain via Web Serial (Chrome / Edge).</p>
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-dot"></div>
+      <div>CWFKeychain <span class="tagline">Web Flasher</span></div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-theme" id="btn-theme" title="Toggle dark mode">🌙 Dark mode</button>
+    </div>
+  </div>
+</header>
 
-<card>
-  <h2>1. Connect device</h2>
-  <div class="file-group">
-    <label for="port-status">Port</label>
-    <div style="flex:1; display:flex; gap:8px; align-items:center;">
-      <span id="port-name" style="color:#6b7280; font-size:13px;">Not connected</span>
-      <button id="btn-connect" class="primary">Connect</button>
-    </div>
+<main>
+  <div class="status-bar">
+    <div class="status-dot" id="status-dot"></div>
+    <div class="status-text" id="status-text">No device</div>
+    <div class="status-chip empty" id="status-chip">—</div>
   </div>
-  <div id="chip-info" class="hidden" style="margin-top:10px; font-size:13px; color:#15803d;">
-    Connected: <span id="chip-name"></span>
-  </div>
-</card>
 
-<card>
-  <h2>2. Select firmware files</h2>
-  <div class="row">
-    <div class="file-group">
-      <label>Bootloader</label>
-      <input type="file" id="file-bootloader" accept=".bin">
-    </div>
-    <div>
-      <label>Offset</label>
-      <input type="text" id="addr-bootloader" value="0x0">
-    </div>
-  </div>
-  <div class="row">
-    <div class="file-group">
-      <label>Partitions</label>
-      <input type="file" id="file-partitions" accept=".bin">
-    </div>
-    <div>
-      <label>Offset</label>
-      <input type="text" id="addr-partitions" value="0x8000">
-    </div>
-  </div>
-  <div class="row">
-    <div class="file-group">
-      <label>Firmware (app)</label>
-      <input type="file" id="file-firmware" accept=".bin">
-    </div>
-    <div>
-      <label>Offset</label>
-      <input type="text" id="addr-firmware" value="0x10000">
-    </div>
-  </div>
-  <div style="margin-top:10px;">
-    <label style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:normal;">
-      <input type="checkbox" id="chk-eraseall" checked>
-      Erase entire flash before writing
-    </label>
-  </div>
-</card>
+  <div class="grid">
+    <card>
+      <h3><span class="k">Step 1 · Connect</span> Device</h3>
+      <label>Serial port</label>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <span id="port-name" style="font-size:13px; color:var(--muted);">Not connected</span>
+      </div>
+      <div class="btn-row" style="margin-top:14px;">
+        <button id="btn-connect" class="btn-primary btn-full">🔌 Connect &amp; Detect</button>
+        <button id="btn-disconnect" class="btn-secondary btn-full hidden">Disconnect</button>
+      </div>
+      <div class="note" style="margin-top:10px;">Hold BOOT while clicking Connect if detection fails. Web Serial requires Chrome or Edge.</div>
+    </card>
 
-<card>
-  <h2>3. Flash</h2>
-  <div class="btn-row">
-    <button id="btn-flash" class="primary" disabled>Flash all files</button>
-    <button id="btn-reset" class="secondary" disabled>Reset device</button>
-  </div>
-  <div class="progress" id="progress"><div class="bar" id="progress-bar"></div></div>
-  <div id="flash-status" style="font-size:13px; color:#6b7280; margin-top:6px;"></div>
-  <div id="log" class="log"></div>
-</card>
+    <card id="card-chip" class="hidden">
+      <h3><span class="k">Chip info</span> Detected device</h3>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+        <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Chip</div><div id="chip-name" style="font-size:13px; font-weight:600;">—</div></div>
+        <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Flash size</div><div id="chip-flash" style="font-size:13px; font-weight:600;">—</div></div>
+      </div>
+    </card>
 
-<div class="note">
-  <b>Offsets (ESP32-C3 default):</b> bootloader 0x0, partitions 0x8000, app 0x10000.<br>
-  <b>Browser:</b> Google Chrome or Microsoft Edge (Web Serial API required).<br>
-  <b>Enter bootloader mode:</b> hold BOOT button while pressing RESET (or the flasher will attempt auto-reset via DTR/RTS).
-</div>
+    <card>
+      <h3><span class="k">Step 2 · Select files</span> Local firmware</h3>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:14px;">Drop any .bin files, or click to browse. Set the flash offset for each.</p>
+
+      <div class="multi-file" id="file-list">
+        <div class="multi-row">
+          <div>
+            <label>Bootloader</label>
+            <input type="file" id="f-bootloader" accept=".bin">
+            <div class="file-name empty" id="n-bootloader">No file selected</div>
+          </div>
+          <div>
+            <label>Address (hex)</label>
+            <input type="text" id="a-bootloader" value="0x0">
+          </div>
+        </div>
+        <div class="multi-row">
+          <div>
+            <label>Partitions</label>
+            <input type="file" id="f-partitions" accept=".bin">
+            <div class="file-name empty" id="n-partitions">No file selected</div>
+          </div>
+          <div>
+            <label>Address (hex)</label>
+            <input type="text" id="a-partitions" value="0x8000">
+          </div>
+        </div>
+        <div class="multi-row">
+          <div>
+            <label>Firmware (app)</label>
+            <input type="file" id="f-firmware" accept=".bin">
+            <div class="file-name empty" id="n-firmware">No file selected</div>
+          </div>
+          <div>
+            <label>Address (hex)</label>
+            <input type="text" id="a-firmware" value="0x10000">
+          </div>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:12px;">
+        <button id="btn-add" class="btn-secondary btn-full">+ Add file + address</button>
+      </div>
+      <label style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:normal; margin-top:10px;">
+        <input type="checkbox" id="chk-eraseall" checked>
+        Erase entire flash before writing
+      </label>
+    </card>
+
+    <card>
+      <h3><span class="k">Step 3 · Flash</span> Install firmware</h3>
+      <div class="progress-wrap" id="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+      <div class="flash-status" id="flash-status">Ready to flash</div>
+      <div class="btn-row" style="margin-top:14px;">
+        <button id="btn-flash" class="btn-primary btn-full hidden">⚡ Flash all files</button>
+        <button id="btn-erase" class="btn-danger btn-full hidden">Erase Flash (Full)</button>
+        <button id="btn-reset" class="btn-secondary btn-full hidden">Reset device</button>
+      </div>
+      <div style="margin-top:10px;">
+        <div style="font-size:13px; color:var(--muted); margin-bottom:6px;">Flasher log</div>
+        <div class="console" id="console"></div>
+      </div>
+    </card>
+  </div>
+
+  <div class="note">
+    <b>Default offsets (ESP32-C3):</b> bootloader 0x0, partitions 0x8000, app 0x10000.<br>
+    <b>Browser:</b> Chrome or Edge (Web Serial API).<br>
+    <b>Release:</b> v1.0.0 — <a href="https://github.com/cwfelectronics/CWFKeychain/releases/tag/v1.0.0" target="_top">Download firmware files</a>
+  </div>
+</main>
 
 <script type="module">
 import { ESPLoader, Transport } from "https://unpkg.com/esptool-js/bundle.js";
 
-const $ = (id) => document.getElementById(id);
+/* ---------- Theme ---------- */
+const btnTheme = $("#btn-theme");
+const saved = localStorage.getItem("theme");
+if (saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+  document.documentElement.setAttribute("data-theme", "dark");
+  btnTheme.textContent = "☀ Light mode";
+}
+btnTheme.addEventListener("click", () => {
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  document.documentElement.setAttribute("data-theme", isDark ? "light" : "dark");
+  localStorage.setItem("theme", isDark ? "light" : "dark");
+  btnTheme.textContent = isDark ? "🌙 Dark mode" : "☀ Light mode";
+});
 
+/* ---------- Helpers ---------- */
+const $ = (id) => document.getElementById(id);
+const log = (msg, kind = "info") => {
+  const c = $("#console");
+  const line = document.createElement("div");
+  line.className = "line " + kind;
+  const ts = new Date().toLocaleTimeString();
+  line.textContent = "[" + ts + "] " + msg;
+  c.appendChild(line);
+  c.scrollTop = c.scrollHeight;
+};
+const clearLog = () => { $("#console").innerHTML = ""; };
+
+/* ---------- State ---------- */
 let port = null;
 let transport = null;
 let esploader = null;
 let connected = false;
 
-const log = (msg, kind = "info") => {
-  const el = $("log");
-  const entry = document.createElement("div");
-  entry.className = "entry " + kind;
-  entry.textContent = new Date().toLocaleTimeString() + "  " + msg;
-  el.appendChild(entry);
-  el.scrollTop = el.scrollHeight;
+const setStatus = (text, connected_) => {
+  $("#status-text").textContent = text;
+  $("#status-dot").classList.toggle("connected", connected_);
+  $("#btn-connect").classList.toggle("hidden", connected_);
+  $("#btn-disconnect").classList.toggle("hidden", !connected_);
+  $("#card-chip").classList.toggle("hidden", !connected_);
+  $("#btn-flash").classList.toggle("hidden", !connected_);
+  $("#btn-erase").classList.toggle("hidden", !connected_);
+  $("#btn-reset").classList.toggle("hidden", !connected_);
+  connected = connected_;
+};
+const setChipInfo = (name, size) => {
+  $("#chip-name").textContent = name;
+  $("#chip-flash").textContent = size;
+  $("#status-chip").textContent = name;
+  $("#status-chip").classList.remove("empty");
 };
 
-const clearLog = () => { $("log").innerHTML = ""; };
-
-const setConnecting = (v) => {
-  const b = $("btn-connect");
-  b.disabled = v;
-  b.textContent = v ? "Connecting..." : (connected ? "Disconnect" : "Connect");
-};
-
-const setFlashing = (v) => {
-  $("btn-flash").disabled = v || !connected;
-  $("btn-reset").disabled = v || !connected;
-  $("btn-flash").textContent = v ? "Flashing..." : "Flash all files";
-};
-
-$("btn-connect").addEventListener("click", async () => {
-  if (connected) {
-    try { await transport.disconnect(); } catch (e) {}
-    port = null; transport = null; esploader = null; connected = false;
-    $("port-name").textContent = "Not connected";
-    $("port-name").style.color = "#6b7280";
-    $("chip-info").classList.add("hidden");
-    setConnecting(false); setFlashing(false);
-    return;
-  }
+/* ---------- Connect ---------- */
+$("#btn-connect").addEventListener("click", async () => {
   clearLog();
-  setConnecting(true);
   try {
     port = await navigator.serial.requestPort({});
     transport = new Transport(port, true);
@@ -201,86 +317,161 @@ $("btn-connect").addEventListener("click", async () => {
       writeLine: (d) => log(d, "info"),
       write: (d) => { if (d.trim()) log(d.trim(), "info"); },
     };
-    esploader = new ESPLoader({
-      transport,
-      baudrate: 115200,
-      terminal,
-      debugLogging: false,
-    });
-    const chip = await esploader.main();
-    connected = true;
-    $("port-name").textContent = "Connected";
-    $("port-name").style.color = "#15803d";
-    $("chip-name").textContent = chip;
-    $("chip-info").classList.remove("hidden");
-    log("Connected to " + chip, "ok");
-    setFlashing(false);
+    esploader = new ESPLoader({ transport, baudrate: 115200, terminal, debugLogging: false });
+    const name = await esploader.main();
+    setStatus("Connected", true);
+    setChipInfo(name, "—");
+    log("Connected to " + name, "ok");
   } catch (e) {
     log("Connection failed: " + String(e), "err");
-    setConnecting(false);
+    setStatus("No device", false);
   }
 });
 
+$("#btn-disconnect").addEventListener("click", async () => {
+  try { if (transport) await transport.disconnect(); } catch (e) {}
+  port = null; transport = null; esploader = null;
+  setStatus("No device", false);
+  setChipInfo("—", "—");
+  $("#chip-name").textContent = "—"; $("#chip-flash").textContent = "—";
+  $("#status-chip").textContent = "—"; $("#status-chip").classList.add("empty");
+  log("Disconnected", "info");
+});
+
+/* ---------- File handling ---------- */
+const setupFileInput = (fileId, nameId) => {
+  const input = $(fileId);
+  const nameEl = $(nameId);
+  input.addEventListener("change", () => {
+    nameEl.textContent = input.files[0] ? input.files[0].name : "No file selected";
+    nameEl.classList.toggle("empty", !input.files[0]);
+  });
+};
+["f-bootloader","f-partitions","f-firmware"].forEach((f,i)=>{
+  setupFileInput(f, ["n-bootloader","n-partitions","n-firmware"][i]);
+});
+
+const addFileRow = () => {
+  const idx = $("#file-list").querySelectorAll(".custom-row").length;
+  const row = document.createElement("div");
+  row.className = "multi-row custom-row";
+  row.innerHTML = `
+    <div>
+      <label>Custom file #${idx + 1}</label>
+      <input type="file" class="custom-file" accept=".bin">
+      <div class="file-name empty custom-name">No file selected</div>
+    </div>
+    <div>
+      <label>Address (hex)</label>
+      <input type="text" class="custom-addr" placeholder="0x0">
+    </div>
+    <div style="display:flex; align-items:end;">
+      <button class="btn-danger" style="padding:6px 10px; font-size:12px;">×</button>
+    </div>
+  `;
+  row.querySelector("button").addEventListener("click", () => row.remove());
+  const fin = row.querySelector(".custom-file");
+  const fn = row.querySelector(".custom-name");
+  fin.addEventListener("change", () => { fn.textContent = fin.files[0] ? fin.files[0].name : "No file selected"; fn.classList.toggle("empty", !fin.files[0]); });
+  $("#file-list").appendChild(row);
+};
+$("#btn-add").addEventListener("click", addFileRow);
+
+/* ---------- Flash ---------- */
 const readFile = (input) => new Promise((resolve, reject) => {
   const f = input.files[0];
   if (!f) return resolve(null);
   const r = new FileReader();
-  r.onload = () => resolve(new Uint8Array(r.result));
+  r.onload = () => resolve({ data: new Uint8Array(r.result), name: f.name });
   r.onerror = () => reject(new Error("Failed to read " + f.name));
   r.readAsArrayBuffer(f);
 });
 
-$("btn-flash").addEventListener("click", async () => {
+const setFlashing = (v) => {
+  $("#btn-flash").disabled = v;
+  $("#btn-erase").disabled = v;
+  $("#btn-reset").disabled = v || !connected;
+  $("#progress-wrap").style.display = v ? "block" : "none";
+  if (!v) $("#progress-bar").style.width = "0%";
+};
+
+$("#btn-flash").addEventListener("click", async () => {
   clearLog();
   setFlashing(true);
   try {
-    const addr = (id) => parseInt($(id).value, 16);
-    const files = [
-      { data: await readFile($("file-bootloader")), address: addr("addr-bootloader"), name: "bootloader" },
-      { data: await readFile($("file-partitions")), address: addr("addr-partitions"), name: "partitions" },
-      { data: await readFile($("file-firmware")), address: addr("addr-firmware"), name: "firmware" },
-    ].filter((f) => f.data);
+    const files = [];
+    const add = (fileId, addrId, label) => {
+      const inp = $(fileId);
+      if (!inp.files[0]) return;
+      files.push({ input: inp, addr: parseInt($(addrId).value, 16), label });
+    };
+    add("f-bootloader","a-bootloader","bootloader");
+    add("f-partitions","a-partitions","partitions");
+    add("f-firmware","a-firmware","firmware");
+    document.querySelectorAll(".custom-file").forEach((inp, i) => {
+      if (!inp.files[0]) return;
+      const row = inp.closest(".multi-row");
+      const addr = row.querySelector(".custom-addr");
+      files.push({ input: inp, addr: addr ? parseInt(addr.value, 16) : 0, label: "custom" + (i+1) });
+    });
 
     if (files.length === 0) throw new Error("No firmware files selected");
 
-    const totalBytes = files.reduce((s, f) => s + f.data.length, 0);
-    let doneBytes = 0;
+    const loaded = [];
+    let totalBytes = 0;
+    for (const f of files) {
+      const r = await readFile(f.input);
+      loaded.push({ data: r.data, name: r.name, addr: f.addr, label: f.label });
+      totalBytes += r.data.length;
+    }
 
-    $("progress").style.display = "block";
+    let doneBytes = 0;
     const updateProgress = (fileIndex, written, total) => {
-      // per-file progress approximation
-      const fileBytes = files[fileIndex]?.data.length || total;
-      const base = files.slice(0, fileIndex).reduce((s, f) => s + f.data.length, 0);
-      const pct = Math.min(100, ((base + Math.min(written, fileBytes)) / totalBytes) * 100);
-      $("progress-bar").style.width = pct + "%";
-      $("flash-status").textContent = `Flashing ${files[fileIndex]?.name}... ${pct.toFixed(0)}%`;
+      const base = loaded.slice(0, fileIndex).reduce((s, it) => s + it.data.length, 0);
+      const cur = Math.min(written, loaded[fileIndex]?.data.length || total);
+      const pct = Math.min(100, ((base + cur) / totalBytes) * 100);
+      $("#progress-bar").style.width = pct + "%";
+      $("#flash-status").textContent = `Flashing ${loaded[fileIndex]?.label}… ${pct.toFixed(0)}%`;
     };
 
-    log("Erasing flash: " + $("chk-eraseall").checked, "info");
-    log("Flashing " + files.length + " file(s)...", "info");
+    log("Erase all: " + $("#chk-eraseall").checked, "info");
+    log("Flashing " + loaded.length + " file(s) (" + totalBytes + " bytes)…", "info");
 
     await esploader.writeFlash({
-      fileArray: files.map((f) => ({ data: f.data, address: f.address })),
+      fileArray: loaded.map(it => ({ data: it.data, address: it.addr })),
       flashMode: "dio",
       flashFreq: "40m",
       flashSize: "4MB",
-      eraseAll: $("chk-eraseall").checked,
+      eraseAll: $("#chk-eraseall").checked,
       compress: true,
       reportProgress: updateProgress,
     });
 
-    $("progress-bar").style.width = "100%";
-    $("flash-status").textContent = "Flash complete";
-    log("Flash complete (" + totalBytes + " bytes)", "ok");
+    $("#progress-bar").style.width = "100%";
+    $("#flash-status").textContent = "Flash complete";
+    log("Flash complete", "ok");
   } catch (e) {
     log("Flash failed: " + String(e), "err");
-    $("flash-status").textContent = "Flash failed";
+    $("#flash-status").textContent = "Flash failed";
   } finally {
     setFlashing(false);
   }
 });
 
-$("btn-reset").addEventListener("click", async () => {
+$("#btn-erase").addEventListener("click", async () => {
+  if (!confirm("Erase entire flash? This cannot be undone.")) return;
+  clearLog(); setFlashing(true);
+  try {
+    log("Erasing flash…", "info");
+    await esploader.eraseFlash();
+    log("Erase complete", "ok");
+    $("#flash-status").textContent = "Erased";
+  } catch (e) {
+    log("Erase failed: " + String(e), "err");
+  } finally { setFlashing(false); }
+});
+
+$("#btn-reset").addEventListener("click", async () => {
   try {
     await esploader.after("hard_reset");
     log("Device reset", "ok");

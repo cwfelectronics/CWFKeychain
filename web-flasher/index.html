@@ -1,236 +1,970 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CWF - Web Flasher</title>
-<style>
-  :root {
-    --bg: #0f172a;
-    --card: #1e293b;
-    --text: #f1f5f9;
-    --muted: #94a3b8;
-    --border: #334155;
-    --accent: #f1f5f9;
-    --accent-hover: #ffffff;
-    --success: #4ade80;
-    --error: #f87171;
-    --info: #60a5fa;
-    --chip-bg: #334155;
-    --chip-text: #f1f5f9;
-    --console-bg: #000000;
-    --console-text: #e2e8f0;
-    --shadow: 0 1px 3px rgba(0,0,0,0.3);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    line-height: 1.5;
-    transition: background 0.2s, color 0.2s;
-  }
-  a { color: var(--info); text-decoration: none; }
-  a:hover { text-decoration: underline; }
+  <meta charset="UTF-8" />
+  <title>CWFKeychain · Web Flasher</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#ee3a17" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Doto:wght@600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
-  header {
-    background: var(--card);
-    border-bottom: 1px solid var(--border);
-    padding: 16px 24px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: var(--shadow);
-  }
-  .header-inner { max-width: 1000px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-  .brand { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
-  .brand-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 2px rgba(34,197,94,0.2); }
-  .tagline { color: var(--muted); font-size: 13px; }
-  .header-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+  <style>
+    :root {
+      --radius-xl: 16px;
+      --radius-md: 10px;
+      --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --font-pixel: "Doto", "JetBrains Mono", ui-monospace, monospace;
+    }
 
-  main { max-width: 1000px; margin: 0 auto; padding: 24px; }
+    body[data-theme="dark"] {
+      --bg: #080808;
+      --bg-soft: #0d0d0d;
+      --shell-bg: rgba(10, 10, 10, 0.82);
+      --shell-border: rgba(255, 255, 255, 0.1);
+      --shell-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+      --panel: rgba(10, 10, 10, 0.72);
+      --panel-border: rgba(255, 255, 255, 0.1);
+      --panel-overlay: rgba(238, 58, 23, 0.45);
+      --surface: rgba(17, 17, 17, 0.9);
+      --surface-strong: #111111;
+      --border: rgba(255, 255, 255, 0.08);
+      --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.4);
+      --accent: #ee3a17;
+      --accent-soft: rgba(238, 58, 23, 0.12);
+      --accent-contrast: #fafafa;
+      --accent-hover: #ff4d2a;
+      --accent-active: #c92f12;
+      --accent-ring: rgba(238, 58, 23, 0.35);
+      --accent-border-soft: rgba(238, 58, 23, 0.28);
+      --cyan: #00e5ff;
+      --success: #4ade80;
+      --btn-border: rgba(255, 255, 255, 0.12);
+      --btn-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+      --btn-shadow-hover: 0 6px 18px rgba(238, 58, 23, 0.22);
+      --btn-shadow-weak: 0 1px 2px rgba(0, 0, 0, 0.25);
+      --btn-shadow-weak-hover: 0 4px 12px rgba(0, 0, 0, 0.3);
+      --text-main: #f4f4f5;
+      --text-soft: #737373;
+      --danger: #ff2d95;
+      --danger-surface: rgba(255, 45, 149, 0.12);
+      --danger-border: rgba(255, 45, 149, 0.4);
+      --danger-text: #ffc1e0;
+      --input-bg: rgba(8, 8, 8, 0.95);
+      --tag-dot-online: #00e5ff;
+      --console-bg: rgba(0, 0, 0, 0.6);
+      --console-text: #e2e8f0;
+    }
 
-  .status-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding: 12px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); }
-  .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 0 2px rgba(239,68,68,0.15); transition: all 0.2s; }
-  .status-dot.connected { background: var(--success); box-shadow: 0 0 0 2px rgba(34,197,94,0.25); }
-  .status-text { font-size: 14px; font-weight: 600; }
-  .status-chip { font-size: 12px; padding: 2px 10px; border-radius: 20px; background: var(--chip-bg); color: var(--chip-text); border: 1px solid var(--border); margin-left: auto; }
-  .status-chip.empty { color: var(--muted); }
+    body[data-theme="light"] {
+      --bg: #f4f4f5;
+      --bg-soft: #fafafa;
+      --shell-bg: rgba(255, 255, 255, 0.92);
+      --shell-border: rgba(0, 0, 0, 0.1);
+      --shell-shadow: 0 12px 36px rgba(0, 0, 0, 0.08);
+      --panel: rgba(255, 255, 255, 0.9);
+      --panel-border: rgba(0, 0, 0, 0.08);
+      --panel-overlay: rgba(238, 58, 23, 0.35);
+      --surface: #fafafa;
+      --surface-strong: #ffffff;
+      --border: rgba(0, 0, 0, 0.1);
+      --shadow-soft: 0 4px 16px rgba(0, 0, 0, 0.06);
+      --accent: #ee3a17;
+      --accent-soft: rgba(238, 58, 23, 0.1);
+      --accent-contrast: #ffffff;
+      --accent-hover: #ff4d2a;
+      --accent-active: #c92f12;
+      --accent-ring: rgba(238, 58, 23, 0.28);
+      --accent-border-soft: rgba(238, 58, 23, 0.22);
+      --cyan: #056eb9;
+      --success: #22c55e;
+      --btn-border: rgba(0, 0, 0, 0.12);
+      --btn-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+      --btn-shadow-hover: 0 6px 16px rgba(238, 58, 23, 0.18);
+      --btn-shadow-weak: 0 1px 2px rgba(0, 0, 0, 0.06);
+      --btn-shadow-weak-hover: 0 4px 12px rgba(0, 0, 0, 0.1);
+      --text-main: #111111;
+      --text-soft: #737373;
+      --danger: #cf2e2e;
+      --danger-surface: rgba(207, 46, 46, 0.1);
+      --danger-border: rgba(207, 46, 46, 0.35);
+      --danger-text: #8c1b23;
+      --input-bg: #ffffff;
+      --tag-dot-online: #056eb9;
+      --console-bg: rgba(248, 248, 248, 0.95);
+      --console-text: #1e293b;
+    }
 
-  .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-  @media (min-width: 768px) { .grid { grid-template-columns: 1fr 1fr; } }
+    * { box-sizing: border-box; font-family: var(--font-sans); margin: 0; padding: 0; }
 
-  card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: var(--shadow);
-    transition: border-color 0.2s;
-  }
-  card h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: var(--text); letter-spacing: -0.01em; }
-  card h3 .k { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-left: auto; }
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      padding: 32px 16px;
+      position: relative;
+      z-index: 0;
+      transition: background 0.3s ease, color 0.3s ease;
+      -webkit-font-smoothing: antialiased;
+    }
 
-  label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.02em; }
-  input[type="file"], input[type="text"] {
-    width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 14px;
-  }
-  input[type="file"]::file-selector-button { display: none; }
-  input[type="text"]::placeholder { color: var(--muted); }
-  .file-name { margin-top: 10px; font-size: 13px; color: var(--text); word-break: break-all; }
-  .file-name.empty { color: var(--muted); font-style: italic; }
+    /* Animated grid background */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: -20%;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Cpath d='M0 28h56M28 0v56' stroke='%23fff' stroke-opacity='0.05' stroke-width='0.5'/%3E%3Ccircle cx='28' cy='28' r='1' fill='%23ee3a17' fill-opacity='0.45'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 56px 56px;
+      animation: bg-drift 72s linear infinite;
+      pointer-events: none;
+      z-index: -2;
+      opacity: 1;
+    }
+    body[data-theme="light"]::before {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Cpath d='M0 28h56M28 0v56' stroke='%23000' stroke-opacity='0.06' stroke-width='0.5'/%3E%3Ccircle cx='28' cy='28' r='1' fill='%23ee3a17' fill-opacity='0.35'/%3E%3C/svg%3E");
+      opacity: 0.7;
+    }
 
-  .field-group { display: grid; grid-template-columns: 1fr 120px; gap: 10px; }
-  .multi-file { display: flex; flex-direction: column; gap: 10px; }
-  .multi-row { display: grid; grid-template-columns: 1fr 120px; gap: 10px; align-items: end; }
+    /* Radial glow at top */
+    body::after {
+      content: "";
+      position: fixed;
+      width: 80%;
+      height: 55%;
+      top: -18%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: radial-gradient(ellipse, rgba(238, 58, 23, 0.16), transparent 68%);
+      filter: blur(40px);
+      pointer-events: none;
+      z-index: -1;
+      animation: bg-glow 7s ease-in-out infinite;
+    }
 
-  button {
-    border: none; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px;
-  }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
-  .btn-secondary { background: var(--chip-bg); border: 1px solid var(--border); color: var(--chip-text); }
-  .btn-secondary:hover:not(:disabled) { background: var(--border); }
-  .btn-success { background: var(--success); color: #fff; }
-  .btn-success:hover:not(:disabled) { filter: brightness(0.95); }
-  .btn-danger { background: var(--error); color: #fff; }
-  .btn-danger:hover:not(:disabled) { filter: brightness(0.9); }
-  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
-  .btn-full { width: 100%; justify-content: center; }
+    @keyframes bg-drift {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(56px, 56px); }
+    }
+    @keyframes bg-glow {
+      0%, 100% { opacity: 0.7; transform: translateX(-50%) scale(1); }
+      50% { opacity: 1; transform: translateX(-50%) scale(1.05); }
+    }
+    @keyframes statusPulse {
+      0% { box-shadow: 0 0 0 0 rgba(238, 58, 23, 0.35); }
+      70% { box-shadow: 0 0 0 8px transparent; }
+      100% { box-shadow: 0 0 0 0 transparent; }
+    }
+    @keyframes progressAnim {
+      from { background-position: 0% 0%; }
+      to   { background-position: 200% 0%; }
+    }
 
-  .progress-wrap { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin: 10px 0; display: none; }
-  .progress-bar { height: 100%; background: var(--info); width: 0%; transition: width 0.2s; }
-  .flash-status { font-size: 13px; color: var(--muted); margin-top: 6px; min-height: 20px; }
+    @media (prefers-reduced-motion: reduce) {
+      body::before, body::after { animation: none !important; }
+      button { transition: none !important; }
+    }
 
-  .console { height: 220px; background: var(--console-bg); color: var(--console-text); border: 1px solid var(--border); border-radius: 8px; padding: 12px; overflow: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; }
-  .console .line { margin: 2px 0; white-space: pre-wrap; word-break: break-all; }
-  .console .ok { color: var(--success); }
-  .console .err { color: var(--error); }
-  .console .info { color: var(--info); }
-  .console .warn { color: #fbbf24; }
-  .console .ts { color: var(--muted); margin-right: 8px; user-select: none; }
+    /* Shell container */
+    .shell {
+      width: 100%;
+      max-width: 1060px;
+      background: var(--shell-bg);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--shell-border);
+      box-shadow: var(--shell-shadow);
+      padding: 24px 28px 28px;
+      backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      position: relative;
+      overflow: hidden;
+    }
 
-  .note { font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); padding-top: 14px; margin-top: 8px; }
-  .note b { color: var(--text); }
+    /* HUD corner accents */
+    .shell::before, .shell::after {
+      content: "";
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-color: var(--accent);
+      border-style: solid;
+      pointer-events: none;
+      z-index: 2;
+      opacity: 0.65;
+    }
+    .shell::before { top: 10px; left: 10px; border-width: 2px 0 0 2px; }
+    .shell::after { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; }
 
-  .hidden { display: none !important; }
-</style>
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .brand-title {
+      font-family: var(--font-pixel);
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      color: var(--text-main);
+    }
+    .brand-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .brand-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-soft);
+    }
+    .brand-pill.accent {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .tag {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text-soft);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+    }
+    .tag-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .tag-dot.connected {
+      background: var(--tag-dot-online);
+      box-shadow: 0 0 10px var(--tag-dot-online);
+    }
+
+    .theme-toggle {
+      width: 34px;
+      height: 32px;
+      padding: 0;
+      font-size: 16px;
+      line-height: 1;
+    }
+    .theme-toggle span { line-height: 1; }
+
+    .docs-link {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 12px;
+      text-decoration: none;
+      background: var(--surface);
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+    .docs-link:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    /* Main layout */
+    .layout-main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+      gap: 22px;
+      align-items: flex-start;
+    }
+    .layout-col {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    @media (max-width: 900px) {
+      .layout-main { grid-template-columns: 1fr; }
+      .shell { padding: 18px 16px 22px; }
+      body { padding: 20px 12px; }
+    }
+    @media (max-width: 600px) {
+      header { flex-direction: column; align-items: flex-start; }
+      .header-actions { width: 100%; justify-content: flex-start; }
+    }
+
+    /* Panels */
+    .panel {
+      background: var(--panel);
+      border-radius: 18px;
+      border: 1px solid var(--panel-border);
+      box-shadow: var(--shadow-soft);
+      padding: 20px 20px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .panel:hover {
+      border-color: rgba(238, 58, 23, 0.35);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+    body[data-theme="light"] .panel:hover {
+      box-shadow: 0 8px 24px rgba(31, 35, 40, 0.06);
+    }
+    .panel::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--panel-overlay);
+      pointer-events: none;
+      border-radius: 18px 18px 0 0;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      z-index: 1;
+    }
+    .panel-title-row {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .panel-title {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--text-soft);
+      text-transform: uppercase;
+    }
+    .panel-step {
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border-radius: 999px;
+      padding: 3px 9px;
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--text-soft);
+      background: var(--surface);
+    }
+
+    .panel-body {
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .panel-block {
+      padding: 14px 0;
+      border-top: 1px solid var(--border);
+    }
+    .panel-block:first-of-type {
+      border-top: none;
+      padding-top: 0;
+    }
+    .block-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      margin: 0 0 10px;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* Metric grid */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 10px;
+    }
+    .metric {
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      min-height: 56px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .metric:hover {
+      border-color: rgba(238, 58, 23, 0.25);
+      background: var(--surface-strong);
+    }
+    .metric-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-soft);
+    }
+    .metric-value {
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 4px;
+      color: var(--text-main);
+    }
+
+    /* Status dot */
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      margin-right: 4px;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .status-dot.connected {
+      background: var(--tag-dot-online);
+      box-shadow: 0 0 8px var(--tag-dot-online);
+    }
+    .status-text {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    /* Buttons */
+    button {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--btn-border);
+      padding: 10px 14px;
+      min-height: 38px;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1;
+      cursor: pointer;
+      background: var(--accent);
+      color: var(--accent-contrast);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      user-select: none;
+      transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.05s;
+      box-shadow: var(--btn-shadow);
+    }
+    button:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--accent-ring), var(--btn-shadow-hover);
+    }
+    button:not(:disabled):hover {
+      background: var(--accent-hover);
+      box-shadow: var(--btn-shadow-hover);
+    }
+    button:not(:disabled):active {
+      background: var(--accent-active);
+      box-shadow: var(--btn-shadow);
+      transform: translateY(1px);
+    }
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    button.secondary {
+      background: var(--surface);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      box-shadow: none;
+    }
+    button.secondary:not(:disabled):hover {
+      background: var(--surface-strong);
+      border-color: var(--accent-border-soft);
+      box-shadow: var(--btn-shadow-weak-hover);
+    }
+    button.secondary:not(:disabled):active {
+      background: var(--surface-strong);
+      border-color: var(--accent-border-soft);
+      box-shadow: var(--btn-shadow-weak);
+      transform: translateY(1px);
+    }
+
+    button.danger {
+      background: var(--danger-surface);
+      color: var(--danger-text);
+      border: 1px solid var(--danger-border);
+      box-shadow: none;
+    }
+    button.danger:not(:disabled):hover {
+      background: var(--danger-surface);
+      border-color: var(--danger);
+    }
+
+    .btn-small {
+      padding: 7px 12px;
+      min-height: 32px;
+      font-size: 12px;
+      border-radius: 10px;
+    }
+    .btn-full { width: 100%; }
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+
+    /* Inputs */
+    input[type="file"], input[type="text"], select {
+      width: 100%;
+      background: var(--input-bg);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      font-size: 13px;
+      padding: 10px 12px;
+      min-height: 38px;
+      line-height: 1;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-ring);
+    }
+    input[type="file"]::file-selector-button { display: none; }
+    input::placeholder { color: var(--text-soft); }
+
+    .label {
+      font-size: 11px;
+      color: var(--text-soft);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    /* Multi file rows */
+    .multi-file-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .multi-file-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 8px 10px;
+      background: var(--surface);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      transition: border-color 0.2s;
+    }
+    .multi-file-row:hover {
+      border-color: rgba(238, 58, 23, 0.2);
+    }
+    .multi-file-row .file-label {
+      min-width: 90px;
+      font-size: 12px;
+      color: var(--text-soft);
+      cursor: pointer;
+      text-decoration: underline;
+      flex-shrink: 0;
+    }
+    .multi-file-row .file-label.has-file {
+      color: var(--accent);
+    }
+    .multi-file-row input[type="file"] {
+      width: 0; height: 0; opacity: 0; position: absolute;
+    }
+    .multi-file-row .file-name {
+      font-size: 12px;
+      color: var(--text-soft);
+      flex: 1;
+      min-width: 80px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .multi-file-row .file-name.has-file {
+      color: var(--text-main);
+    }
+    .multi-file-row .addr-input {
+      width: 90px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .multi-file-row .remove-btn {
+      min-height: 32px;
+      padding: 7px 10px;
+      font-size: 11px;
+    }
+
+    /* Dropzone */
+    .dropzone {
+      border-radius: 14px;
+      border: 2px dashed var(--border);
+      padding: 20px 16px;
+      text-align: center;
+      cursor: pointer;
+      background: var(--surface);
+      transition: border-color 0.2s, background 0.2s;
+      font-size: 13px;
+      color: var(--text-soft);
+    }
+    .dropzone:hover {
+      border-color: var(--accent);
+      background: var(--surface-strong);
+    }
+    .dropzone span { color: var(--accent); font-weight: 600; }
+
+    /* Checkbox */
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-soft);
+      margin-top: 4px;
+    }
+    .checkbox-row input { accent-color: var(--accent); }
+
+    /* Progress bar */
+    .progress {
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      display: none;
+    }
+    .progress.visible { display: block; }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ffb4a4, #ff4d2a, #ee3a17);
+      background-size: 200% 100%;
+      animation: progressAnim 1.2s linear infinite;
+      transition: width 0.2s;
+    }
+
+    .flash-status {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-soft);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 1.2em;
+    }
+    .flash-status::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--text-soft);
+      opacity: 0.55;
+      flex-shrink: 0;
+    }
+    .flash-status.is-ready { color: var(--accent); }
+    .flash-status.is-ready::before {
+      background: var(--accent);
+      opacity: 1;
+      box-shadow: 0 0 0 0 rgba(238, 58, 23, 0.35);
+      animation: statusPulse 2s ease-out infinite;
+    }
+    .flash-status.is-success { color: var(--success); }
+    .flash-status.is-success::before {
+      background: var(--success);
+      opacity: 1;
+      animation: none;
+    }
+    .flash-status.is-error { color: var(--danger); }
+    .flash-status.is-error::before {
+      background: var(--danger);
+      opacity: 1;
+      animation: none;
+    }
+
+    /* Console */
+    .console-wrap pre {
+      background: var(--console-bg);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      font-size: 12px;
+      line-height: 1.5;
+      font-family: var(--font-mono);
+      max-height: 220px;
+      min-height: 120px;
+      overflow-y: auto;
+      color: var(--console-text);
+    }
+    .console-wrap .log-tag {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--text-soft);
+      margin-bottom: 6px;
+    }
+    .line { margin: 2px 0; white-space: pre-wrap; word-break: break-all; }
+    .line.ok { color: var(--success); }
+    .line.err { color: var(--danger); }
+    .line.info { color: var(--cyan); }
+    .line.warn { color: #fbbf24; }
+    .line .ts { color: var(--text-soft); margin-right: 8px; user-select: none; }
+
+    /* Hint text */
+    .hint {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+    .hint b, .hint strong { color: var(--text-main); }
+    .mono { font-family: var(--font-mono); }
+
+    /* Footer */
+    .shell-footer {
+      margin-top: 8px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text-soft);
+      text-align: right;
+      letter-spacing: 0.02em;
+    }
+    .shell-footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .shell-footer a:hover { text-decoration: underline; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    .hidden { display: none !important; }
+  </style>
 </head>
-<body>
 
-<header>
-  <div class="header-inner">
+<body data-theme="dark">
+<div class="shell">
+  <header>
     <div class="brand">
-      <div class="brand-dot"></div>
-      <div>CWFKeychain <span class="tagline">Web Flasher</span></div>
+      <div class="brand-title">CWFKeychain</div>
+      <div class="brand-pills">
+        <span class="brand-pill accent">WebSerial</span>
+        <span class="brand-pill">ESP32-C3</span>
+        <span class="brand-pill">Web Flasher</span>
+      </div>
     </div>
     <div class="header-actions">
+      <div class="tag">
+        <div id="conn-dot" class="tag-dot"></div>
+        <span id="conn-label">No device</span>
+      </div>
+      <a class="docs-link" href="https://github.com/cwfelectronics/CWFKeychain" target="_blank" rel="noreferrer">GitHub</a>
+      <button id="themeToggle" class="secondary btn-small theme-toggle" aria-label="Switch theme" title="Toggle theme">
+        <span id="themeIcon">🌙</span>
+      </button>
     </div>
+  </header>
+
+  <main>
+    <div class="layout-main">
+      <!-- Left column -->
+      <div class="layout-col">
+        <!-- Device panel -->
+        <section class="panel" id="panel-device">
+          <div class="panel-header">
+            <div class="panel-title-row">
+              <div class="panel-title">Device</div>
+              <span class="panel-step">Step 1 · Connect</span>
+            </div>
+            <div class="badge mono" id="chip-badge">No chip</div>
+          </div>
+          <div class="panel-body">
+            <div class="panel-block">
+              <div class="block-title">Connection</div>
+              <div class="row">
+                <button id="btn-connect"><span>🔌 Connect &amp; Detect</span></button>
+                <button id="btn-disconnect" class="secondary btn-small" disabled>Disconnect</button>
+              </div>
+              <div class="row" style="margin-top:8px;">
+                <div class="status-dot" id="status-dot"></div>
+                <div class="status-text" id="status-text">Idle</div>
+              </div>
+              <div class="hint" style="margin-top:8px;">
+                Hold <span class="mono">BOOT</span> while clicking Connect if detection fails. Web Serial requires Chrome or Edge.
+              </div>
+            </div>
+
+            <div class="panel-block hidden" id="chip-info-block">
+              <div class="block-title">Chip info</div>
+              <div class="metric-grid">
+                <div class="metric">
+                  <div class="metric-label">Chip</div>
+                  <div class="metric-value mono" id="chip-name">—</div>
+                </div>
+                <div class="metric">
+                  <div class="metric-label">Flash Size</div>
+                  <div class="metric-value mono" id="chip-flash">—</div>
+                </div>
+                <div class="metric">
+                  <div class="metric-label">MAC Address</div>
+                  <div class="metric-value mono" id="chip-mac">—</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Flash panel -->
+        <section class="panel" id="panel-flash">
+          <div class="panel-header">
+            <div class="panel-title-row">
+              <div class="panel-title">Flash</div>
+              <span class="panel-step">Step 3 · Install</span>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="panel-block">
+              <div class="progress" id="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+              <div class="flash-status" id="flash-status">Ready to flash</div>
+              <div class="btn-row">
+                <button id="btn-flash" class="btn-full hidden">⚡ Flash all files</button>
+              </div>
+              <div class="btn-row">
+                <button id="btn-erase" class="danger btn-small hidden">Erase Flash (Full)</button>
+                <button id="btn-reset" class="secondary btn-small hidden">Reset device</button>
+              </div>
+            </div>
+
+            <div class="console-wrap">
+              <div class="log-tag">Flasher log</div>
+              <pre id="console"></pre>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Right column -->
+      <div class="layout-col">
+        <!-- Firmware files panel -->
+        <section class="panel" id="panel-files">
+          <div class="panel-header">
+            <div class="panel-title-row">
+              <div class="panel-title">Firmware</div>
+              <span class="panel-step">Step 2 · Select files</span>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="hint" style="margin-bottom:4px;">Select .bin files and set the flash address for each.</div>
+            <div class="multi-file-container" id="file-list">
+              <div class="multi-file-row" data-slot="bootloader">
+                <label class="file-label" data-for="f-bootloader">Bootloader</label>
+                <input type="file" id="f-bootloader" accept=".bin" />
+                <span class="file-name" id="n-bootloader">No file</span>
+                <input type="text" class="addr-input" id="a-bootloader" value="0x0" />
+              </div>
+              <div class="multi-file-row" data-slot="partitions">
+                <label class="file-label" data-for="f-partitions">Partitions</label>
+                <input type="file" id="f-partitions" accept=".bin" />
+                <span class="file-name" id="n-partitions">No file</span>
+                <input type="text" class="addr-input" id="a-partitions" value="0x8000" />
+              </div>
+              <div class="multi-file-row" data-slot="firmware">
+                <label class="file-label" data-for="f-firmware">Firmware</label>
+                <input type="file" id="f-firmware" accept=".bin" />
+                <span class="file-name" id="n-firmware">No file</span>
+                <input type="text" class="addr-input" id="a-firmware" value="0x10000" />
+              </div>
+            </div>
+
+            <div class="btn-row" style="margin-top:8px;">
+              <button id="btn-add" class="secondary btn-small btn-full">+ Add file + address</button>
+            </div>
+
+            <label class="checkbox-row">
+              <input type="checkbox" id="chk-eraseall" checked />
+              Erase entire flash before writing
+            </label>
+
+            <div class="hint" style="margin-top:8px;">
+              <strong>Default offsets (ESP32-C3):</strong> bootloader 0x0, partitions 0x8000, app 0x10000.
+            </div>
+          </div>
+        </section>
+
+        <!-- Info panel -->
+        <section class="panel">
+          <div class="panel-header">
+            <div class="panel-title-row">
+              <div class="panel-title">Info</div>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="hint">
+              <strong>Browser:</strong> Chrome or Edge (Web Serial API required).<br/>
+              <strong>Release:</strong> v1.0.0 — <a class="docs-link" style="padding:0;border:0;background:none;border-radius:0;" href="https://github.com/cwfelectronics/CWFKeychain/releases/tag/v1.0.0" target="_blank">Download firmware files</a>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <div class="shell-footer">
+    CWFKeychain Web Flasher · <a href="https://github.com/cwfelectronics/CWFKeychain" target="_blank">cwfelectronics</a>
   </div>
-</header>
-
-<main>
-  <div class="status-bar">
-    <div class="status-dot" id="status-dot"></div>
-    <div class="status-text" id="status-text">No device</div>
-    <div class="status-chip empty" id="status-chip">—</div>
-  </div>
-
-  <div class="grid">
-    <card>
-      <h3><span class="k">Step 1 · Connect</span> Device</h3>
-      <label>Serial port</label>
-      <div style="display:flex; gap:8px; align-items:center;">
-        <span id="port-name" style="font-size:13px; color:var(--muted);">Not connected</span>
-      </div>
-      <div class="btn-row" style="margin-top:14px;">
-        <button id="btn-connect" class="btn-primary btn-full">🔌 Connect &amp; Detect</button>
-        <button id="btn-disconnect" class="btn-secondary btn-full hidden">Disconnect</button>
-      </div>
-      <div class="note" style="margin-top:10px;">Hold BOOT while clicking Connect if detection fails. Web Serial requires Chrome or Edge.</div>
-    </card>
-
-    <card id="card-chip" class="hidden">
-      <h3><span class="k">Chip info</span> Detected device</h3>
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-        <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Chip</div><div id="chip-name" style="font-size:13px; font-weight:600;">—</div></div>
-        <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Flash size</div><div id="chip-flash" style="font-size:13px; font-weight:600;">—</div></div>
-      </div>
-    </card>
-
-    <card>
-      <h3><span class="k">Step 2 · Select files</span> Local firmware</h3>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:14px;">Drop any .bin files, or click to browse. Set the flash offset for each.</p>
-
-      <div class="multi-file" id="file-list">
-        <div class="multi-row">
-          <div>
-            <label>Bootloader</label>
-            <input type="file" id="f-bootloader" accept=".bin">
-            <div class="file-name empty" id="n-bootloader">No file selected</div>
-          </div>
-          <div>
-            <label>Address (hex)</label>
-            <input type="text" id="a-bootloader" value="0x0">
-          </div>
-        </div>
-        <div class="multi-row">
-          <div>
-            <label>Partitions</label>
-            <input type="file" id="f-partitions" accept=".bin">
-            <div class="file-name empty" id="n-partitions">No file selected</div>
-          </div>
-          <div>
-            <label>Address (hex)</label>
-            <input type="text" id="a-partitions" value="0x8000">
-          </div>
-        </div>
-        <div class="multi-row">
-          <div>
-            <label>Firmware (app)</label>
-            <input type="file" id="f-firmware" accept=".bin">
-            <div class="file-name empty" id="n-firmware">No file selected</div>
-          </div>
-          <div>
-            <label>Address (hex)</label>
-            <input type="text" id="a-firmware" value="0x10000">
-          </div>
-        </div>
-      </div>
-      <div class="btn-row" style="margin-top:12px;">
-        <button id="btn-add" class="btn-secondary btn-full">+ Add file + address</button>
-      </div>
-      <label style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:normal; margin-top:10px;">
-        <input type="checkbox" id="chk-eraseall" checked>
-        Erase entire flash before writing
-      </label>
-    </card>
-
-    <card>
-      <h3><span class="k">Step 3 · Flash</span> Install firmware</h3>
-      <div class="progress-wrap" id="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
-      <div class="flash-status" id="flash-status">Ready to flash</div>
-      <div class="btn-row" style="margin-top:14px;">
-        <button id="btn-flash" class="btn-primary btn-full hidden">⚡ Flash all files</button>
-        <button id="btn-erase" class="btn-danger btn-full hidden">Erase Flash (Full)</button>
-        <button id="btn-reset" class="btn-secondary btn-full hidden">Reset device</button>
-      </div>
-      <div style="margin-top:10px;">
-        <div style="font-size:13px; color:var(--muted); margin-bottom:6px;">Flasher log</div>
-        <div class="console" id="console"></div>
-      </div>
-    </card>
-  </div>
-
-  <div class="note">
-    <b>Default offsets (ESP32-C3):</b> bootloader 0x0, partitions 0x8000, app 0x10000.<br>
-    <b>Browser:</b> Chrome or Edge (Web Serial API).<br>
-    <b>Release:</b> v1.0.0 — <a href="https://github.com/cwfelectronics/CWFKeychain/releases/tag/v1.0.0" target="_top">Download firmware files</a>
-  </div>
-</main>
+</div>
 
 <script type="module">
 import { ESPLoader, Transport } from "https://unpkg.com/esptool-js/bundle.js";
@@ -238,15 +972,28 @@ import { ESPLoader, Transport } from "https://unpkg.com/esptool-js/bundle.js";
 /* ---------- Helpers ---------- */
 const $ = (id) => document.getElementById(id);
 const log = (msg, kind = "info") => {
-  const c = $("#console");
+  const c = $("console");
   const line = document.createElement("div");
   line.className = "line " + kind;
   const ts = new Date().toLocaleTimeString();
-  line.textContent = "[" + ts + "] " + msg;
+  line.innerHTML = `<span class="ts">[${ts}]</span> ${msg}`;
   c.appendChild(line);
   c.scrollTop = c.scrollHeight;
 };
-const clearLog = () => { $("#console").innerHTML = ""; };
+const clearLog = () => { $("console").innerHTML = ""; };
+
+/* ---------- Theme toggle ---------- */
+const themeToggle = $("themeToggle");
+const themeIcon = $("themeIcon");
+const setTheme = (t) => {
+  document.body.dataset.theme = t;
+  themeIcon.textContent = t === "dark" ? "🌙" : "☀️";
+  localStorage.setItem("cwf-theme", t);
+};
+themeToggle.addEventListener("click", () => {
+  setTheme(document.body.dataset.theme === "dark" ? "light" : "dark");
+});
+if (localStorage.getItem("cwf-theme")) setTheme(localStorage.getItem("cwf-theme"));
 
 /* ---------- State ---------- */
 let port = null;
@@ -254,26 +1001,29 @@ let transport = null;
 let esploader = null;
 let connected = false;
 
-const setStatus = (text, connected_) => {
-  $("#status-text").textContent = text;
-  $("#status-dot").classList.toggle("connected", connected_);
-  $("#btn-connect").classList.toggle("hidden", connected_);
-  $("#btn-disconnect").classList.toggle("hidden", !connected_);
-  $("#card-chip").classList.toggle("hidden", !connected_);
-  $("#btn-flash").classList.toggle("hidden", !connected_);
-  $("#btn-erase").classList.toggle("hidden", !connected_);
-  $("#btn-reset").classList.toggle("hidden", !connected_);
-  connected = connected_;
+const setStatus = (text, isConnected) => {
+  $("status-text").textContent = text;
+  $("status-dot").classList.toggle("connected", isConnected);
+  $("conn-dot").classList.toggle("connected", isConnected);
+  $("conn-label").textContent = isConnected ? text : "No device";
+  $("btn-connect").classList.toggle("hidden", isConnected);
+  $("btn-disconnect").disabled = !isConnected;
+  $("chip-info-block").classList.toggle("hidden", !isConnected);
+  $("btn-flash").classList.toggle("hidden", !isConnected);
+  $("btn-erase").classList.toggle("hidden", !isConnected);
+  $("btn-reset").classList.toggle("hidden", !isConnected);
+  connected = isConnected;
 };
-const setChipInfo = (name, size) => {
-  $("#chip-name").textContent = name;
-  $("#chip-flash").textContent = size;
-  $("#status-chip").textContent = name;
-  $("#status-chip").classList.remove("empty");
+
+const setChipInfo = (name, size, mac) => {
+  $("chip-name").textContent = name || "—";
+  $("chip-flash").textContent = size || "—";
+  $("chip-mac").textContent = mac || "—";
+  $("chip-badge").textContent = name || "No chip";
 };
 
 /* ---------- Connect ---------- */
-$("#btn-connect").addEventListener("click", async () => {
+$("btn-connect").addEventListener("click", async () => {
   clearLog();
   try {
     port = await navigator.serial.requestPort({});
@@ -286,21 +1036,23 @@ $("#btn-connect").addEventListener("click", async () => {
     esploader = new ESPLoader({ transport, baudrate: 115200, terminal, debugLogging: false });
     const name = await esploader.main();
     setStatus("Connected", true);
-    setChipInfo(name, "—");
+    setChipInfo(name, "—", "—");
     log("Connected to " + name, "ok");
+    $("flash-status").textContent = "Ready to flash";
+    $("flash-status").className = "flash-status is-ready";
   } catch (e) {
     log("Connection failed: " + String(e), "err");
-    setStatus("No device", false);
+    setStatus("Idle", false);
   }
 });
 
-$("#btn-disconnect").addEventListener("click", async () => {
+$("btn-disconnect").addEventListener("click", async () => {
   try { if (transport) await transport.disconnect(); } catch (e) {}
   port = null; transport = null; esploader = null;
-  setStatus("No device", false);
-  setChipInfo("—", "—");
-  $("#chip-name").textContent = "—"; $("#chip-flash").textContent = "—";
-  $("#status-chip").textContent = "—"; $("#status-chip").classList.add("empty");
+  setStatus("Idle", false);
+  setChipInfo("—", "—", "—");
+  $("flash-status").textContent = "Ready to flash";
+  $("flash-status").className = "flash-status";
   log("Disconnected", "info");
 });
 
@@ -308,40 +1060,46 @@ $("#btn-disconnect").addEventListener("click", async () => {
 const setupFileInput = (fileId, nameId) => {
   const input = $(fileId);
   const nameEl = $(nameId);
+  const labelEl = input.closest(".multi-file-row").querySelector(".file-label");
   input.addEventListener("change", () => {
-    nameEl.textContent = input.files[0] ? input.files[0].name : "No file selected";
-    nameEl.classList.toggle("empty", !input.files[0]);
+    const has = !!input.files[0];
+    nameEl.textContent = has ? input.files[0].name : "No file";
+    nameEl.classList.toggle("has-file", has);
+    if (labelEl) labelEl.classList.toggle("has-file", has);
   });
+  if (labelEl) {
+    labelEl.addEventListener("click", () => input.click());
+  }
 };
-["f-bootloader","f-partitions","f-firmware"].forEach((f,i)=>{
+["f-bootloader","f-partitions","f-firmware"].forEach((f, i) => {
   setupFileInput(f, ["n-bootloader","n-partitions","n-firmware"][i]);
 });
 
 const addFileRow = () => {
-  const idx = $("#file-list").querySelectorAll(".custom-row").length;
+  const idx = $("file-list").querySelectorAll(".custom-row").length;
   const row = document.createElement("div");
-  row.className = "multi-row custom-row";
+  row.className = "multi-file-row custom-row";
   row.innerHTML = `
-    <div>
-      <label>Custom file #${idx + 1}</label>
-      <input type="file" class="custom-file" accept=".bin">
-      <div class="file-name empty custom-name">No file selected</div>
-    </div>
-    <div>
-      <label>Address (hex)</label>
-      <input type="text" class="custom-addr" placeholder="0x0">
-    </div>
-    <div style="display:flex; align-items:end;">
-      <button class="btn-danger" style="padding:6px 10px; font-size:12px;">×</button>
-    </div>
+    <label class="file-label">Custom #${idx + 1}</label>
+    <input type="file" class="custom-file" accept=".bin" />
+    <span class="file-name custom-name">No file</span>
+    <input type="text" class="addr-input custom-addr" placeholder="0x0" />
+    <button class="danger btn-small remove-btn">×</button>
   `;
-  row.querySelector("button").addEventListener("click", () => row.remove());
+  const lbl = row.querySelector(".file-label");
   const fin = row.querySelector(".custom-file");
   const fn = row.querySelector(".custom-name");
-  fin.addEventListener("change", () => { fn.textContent = fin.files[0] ? fin.files[0].name : "No file selected"; fn.classList.toggle("empty", !fin.files[0]); });
-  $("#file-list").appendChild(row);
+  lbl.addEventListener("click", () => fin.click());
+  fin.addEventListener("change", () => {
+    const has = !!fin.files[0];
+    fn.textContent = has ? fin.files[0].name : "No file";
+    fn.classList.toggle("has-file", has);
+    lbl.classList.toggle("has-file", has);
+  });
+  row.querySelector(".remove-btn").addEventListener("click", () => row.remove());
+  $("file-list").appendChild(row);
 };
-$("#btn-add").addEventListener("click", addFileRow);
+$("btn-add").addEventListener("click", addFileRow);
 
 /* ---------- Flash ---------- */
 const readFile = (input) => new Promise((resolve, reject) => {
@@ -354,16 +1112,18 @@ const readFile = (input) => new Promise((resolve, reject) => {
 });
 
 const setFlashing = (v) => {
-  $("#btn-flash").disabled = v;
-  $("#btn-erase").disabled = v;
-  $("#btn-reset").disabled = v || !connected;
-  $("#progress-wrap").style.display = v ? "block" : "none";
-  if (!v) $("#progress-bar").style.width = "0%";
+  $("btn-flash").disabled = v;
+  $("btn-erase").disabled = v;
+  $("btn-reset").disabled = v || !connected;
+  $("progress-wrap").classList.toggle("visible", v);
+  if (!v) $("progress-bar").style.width = "0%";
 };
 
-$("#btn-flash").addEventListener("click", async () => {
+$("btn-flash").addEventListener("click", async () => {
   clearLog();
   setFlashing(true);
+  $("flash-status").textContent = "Preparing…";
+  $("flash-status").className = "flash-status";
   try {
     const files = [];
     const add = (fileId, addrId, label) => {
@@ -376,7 +1136,7 @@ $("#btn-flash").addEventListener("click", async () => {
     add("f-firmware","a-firmware","firmware");
     document.querySelectorAll(".custom-file").forEach((inp, i) => {
       if (!inp.files[0]) return;
-      const row = inp.closest(".multi-row");
+      const row = inp.closest(".multi-file-row");
       const addr = row.querySelector(".custom-addr");
       files.push({ input: inp, addr: addr ? parseInt(addr.value, 16) : 0, label: "custom" + (i+1) });
     });
@@ -391,16 +1151,16 @@ $("#btn-flash").addEventListener("click", async () => {
       totalBytes += r.data.length;
     }
 
-    let doneBytes = 0;
     const updateProgress = (fileIndex, written, total) => {
       const base = loaded.slice(0, fileIndex).reduce((s, it) => s + it.data.length, 0);
       const cur = Math.min(written, loaded[fileIndex]?.data.length || total);
       const pct = Math.min(100, ((base + cur) / totalBytes) * 100);
-      $("#progress-bar").style.width = pct + "%";
-      $("#flash-status").textContent = `Flashing ${loaded[fileIndex]?.label}… ${pct.toFixed(0)}%`;
+      $("progress-bar").style.width = pct + "%";
+      $("flash-status").textContent = `Flashing ${loaded[fileIndex]?.label}… ${pct.toFixed(0)}%`;
+      $("flash-status").className = "flash-status";
     };
 
-    log("Erase all: " + $("#chk-eraseall").checked, "info");
+    log("Erase all: " + $("chk-eraseall").checked, "info");
     log("Flashing " + loaded.length + " file(s) (" + totalBytes + " bytes)…", "info");
 
     await esploader.writeFlash({
@@ -408,36 +1168,43 @@ $("#btn-flash").addEventListener("click", async () => {
       flashMode: "dio",
       flashFreq: "40m",
       flashSize: "4MB",
-      eraseAll: $("#chk-eraseall").checked,
+      eraseAll: $("chk-eraseall").checked,
       compress: true,
       reportProgress: updateProgress,
     });
 
-    $("#progress-bar").style.width = "100%";
-    $("#flash-status").textContent = "Flash complete";
+    $("progress-bar").style.width = "100%";
+    $("flash-status").textContent = "Flash complete ✓";
+    $("flash-status").className = "flash-status is-success";
     log("Flash complete", "ok");
   } catch (e) {
     log("Flash failed: " + String(e), "err");
-    $("#flash-status").textContent = "Flash failed";
+    $("flash-status").textContent = "Flash failed";
+    $("flash-status").className = "flash-status is-error";
   } finally {
     setFlashing(false);
   }
 });
 
-$("#btn-erase").addEventListener("click", async () => {
+$("btn-erase").addEventListener("click", async () => {
   if (!confirm("Erase entire flash? This cannot be undone.")) return;
   clearLog(); setFlashing(true);
+  $("flash-status").textContent = "Erasing…";
+  $("flash-status").className = "flash-status";
   try {
     log("Erasing flash…", "info");
     await esploader.eraseFlash();
     log("Erase complete", "ok");
-    $("#flash-status").textContent = "Erased";
+    $("flash-status").textContent = "Erased ✓";
+    $("flash-status").className = "flash-status is-success";
   } catch (e) {
     log("Erase failed: " + String(e), "err");
+    $("flash-status").textContent = "Erase failed";
+    $("flash-status").className = "flash-status is-error";
   } finally { setFlashing(false); }
 });
 
-$("#btn-reset").addEventListener("click", async () => {
+$("btn-reset").addEventListener("click", async () => {
   try {
     await esploader.after("hard_reset");
     log("Device reset", "ok");
